@@ -95,6 +95,24 @@ export default function Home() {
     );
   }, [colonies]);
 
+  const dishColonies = useMemo(() => {
+    return colonies.map((colony, index) => {
+      const angle = (index / colonies.length) * Math.PI * 2;
+      const radius = 18 + colony.energy * 0.18;
+      const x = 50 + Math.cos(angle) * radius;
+      const y = 50 + Math.sin(angle) * radius;
+      const size = 46 + colony.health * 0.7;
+
+      return {
+        ...colony,
+        x,
+        y,
+        size,
+        hue: 155 + index * 28,
+      };
+    });
+  }, [colonies]);
+
   const incubate = async () => {
     setLoading(true);
     try {
@@ -141,7 +159,7 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Synthetic Ecology Lab</p>
+          <p className="eyebrow">Tondu Eco Lab</p>
           <h1>AI Petri Dish</h1>
         </div>
         <div className="pill">Avg. energy: {averageEnergy}%</div>
@@ -149,54 +167,43 @@ export default function Home() {
 
       <section className="layout">
         <div className="dish-panel">
-          <div className="dish">
-            {colonies.map((colony) => (
-              <article key={colony.id} className="colony-card">
-                <div className="card-header">
-                  <div>
-                    <p className="tag">colony</p>
-                    <h2>{colony.name}</h2>
-                  </div>
-                  <span
-                    className={`status ${
-                      colony.health > 60 ? "good" : colony.health > 35 ? "warn" : "bad"
-                    }`}
-                  >
-                    {colony.health > 60
-                      ? "Stable"
-                      : colony.health > 35
-                        ? "Fragile"
-                        : "Critical"}
-                  </span>
-                </div>
+          <div className="dish-plate">
+            <div className="dish-core" />
+            <div className="dish-ring ring-1" />
+            <div className="dish-ring ring-2" />
+            <div className="dish-ring ring-3" />
 
-                <p className="prompt">{colony.prompt}</p>
-
-                <div className="metrics">
-                  <div>
-                    <label>Energy</label>
-                    <strong>{Math.round(colony.energy)}%</strong>
-                  </div>
-                  <div>
-                    <label>Health</label>
-                    <strong>{Math.round(colony.health)}%</strong>
-                  </div>
-                  <div>
-                    <label>Mutation</label>
-                    <strong>{(colony.mutationRate * 100).toFixed(0)}%</strong>
-                  </div>
-                </div>
-
-                <div className="bar-group">
-                  <div className="bar">
-                    <span style={{ width: `${colony.energy}%` }} />
-                  </div>
-                  <div className="bar health">
-                    <span style={{ width: `${colony.health}%` }} />
-                  </div>
-                </div>
-              </article>
+            {dishColonies.map((colony) => (
+              <div
+                key={colony.id}
+                className="growth-cluster"
+                style={{
+                  left: `${colony.x}%`,
+                  top: `${colony.y}%`,
+                  width: `${colony.size}px`,
+                  height: `${colony.size}px`,
+                  background: `radial-gradient(circle at 30% 30%, hsla(${colony.hue}, 85%, 72%, 0.96), hsla(${colony.hue}, 80%, 48%, 0.8))`,
+                  boxShadow: `0 0 18px hsla(${colony.hue}, 80%, 60%, 0.55)`,
+                }}
+              >
+                <span className="cluster-label">{colony.name}</span>
+              </div>
             ))}
+          </div>
+
+          <div className="dish-meta">
+            <div>
+              <span className="meta-label">Dish vitality</span>
+              <strong>{averageEnergy}%</strong>
+            </div>
+            <div>
+              <span className="meta-label">Mutation flux</span>
+              <strong>{Math.round(colonies.reduce((sum, c) => sum + c.mutationRate, 0) * 100 / colonies.length)}%</strong>
+            </div>
+            <div>
+              <span className="meta-label">Nutrient load</span>
+              <strong>{environment.nutrients}%</strong>
+            </div>
           </div>
         </div>
 
@@ -279,6 +286,56 @@ export default function Home() {
             </ul>
           </div>
         </aside>
+      </section>
+
+      <section className="colony-list">
+        {colonies.map((colony) => (
+          <article key={colony.id} className="colony-card">
+            <div className="card-header">
+              <div>
+                <p className="tag">colony</p>
+                <h2>{colony.name}</h2>
+              </div>
+              <span
+                className={`status ${
+                  colony.health > 60 ? "good" : colony.health > 35 ? "warn" : "bad"
+                }`}
+              >
+                {colony.health > 60
+                  ? "Stable"
+                  : colony.health > 35
+                    ? "Fragile"
+                    : "Critical"}
+              </span>
+            </div>
+
+            <p className="prompt">{colony.prompt}</p>
+
+            <div className="metrics">
+              <div>
+                <label>Energy</label>
+                <strong>{Math.round(colony.energy)}%</strong>
+              </div>
+              <div>
+                <label>Health</label>
+                <strong>{Math.round(colony.health)}%</strong>
+              </div>
+              <div>
+                <label>Mutation</label>
+                <strong>{(colony.mutationRate * 100).toFixed(0)}%</strong>
+              </div>
+            </div>
+
+            <div className="bar-group">
+              <div className="bar">
+                <span style={{ width: `${colony.energy}%` }} />
+              </div>
+              <div className="bar health">
+                <span style={{ width: `${colony.health}%` }} />
+              </div>
+            </div>
+          </article>
+        ))}
       </section>
     </main>
   );
